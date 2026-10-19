@@ -613,15 +613,18 @@
         eyeHeight: 1.6,
         player: { speed: 2.2, sprintMul: 1.6, stepDist: 0.6, radius: 0.25 },
         flashlight: {
-          radiusPx: 120,
-          focusRadiusPx: 70,
+          radiusPx: 160,
+          focusRadiusPx: 95,
           distance: 12,
-          angle: 0.35,
+          angle: 0.45,
           penumbra: 0.4,
           intensity: 40,
           color: 0xfff4d6,
           edgeTurn: 0.1,
-          turnSpeedDeg: 60,
+          turnSpeedDeg: 90,
+          lookSensitivity: 0.0025, // 第一章：滑鼠每移動 1 px 視角轉動的弧度
+          pitchMin: -0.8,
+          pitchMax: 0.3,
         },
         key: { pickupDist: 2, doorDist: 1.5 },
         stalker: {
@@ -1299,6 +1302,8 @@
         mouseX: innerWidth / 2,
         mouseY: innerHeight / 2,
         mouseDown: false,
+        mouseDX: 0, // 本幀滑鼠移動量（第一章用來帶動視角）
+        mouseDY: 0,
         init() {
           addEventListener("keydown", (e) => {
             this.down.add(e.code);
@@ -1317,6 +1322,8 @@
             if (document.pointerLockElement) return;
             this.mouseX = e.clientX;
             this.mouseY = e.clientY;
+            this.mouseDX += e.movementX || 0;
+            this.mouseDY += e.movementY || 0;
           });
           addEventListener("mousedown", (e) => {
             if (e.button === 0) this.mouseDown = true;
@@ -1336,6 +1343,8 @@
         },
         endFrame() {
           this.pressed.clear();
+          this.mouseDX = 0;
+          this.mouseDY = 0;
         },
       };
 
@@ -2920,7 +2929,13 @@
         update(dt) {
           this.time += dt;
           const fc = CONFIG.flashlight;
-          // FR-022：游標靠左右邊緣轉視角
+          // FR-022：移動手電筒時視角跟著轉；游標頂到左右邊緣時持續轉動
+          this.yaw -= input.mouseDX * fc.lookSensitivity;
+          this.pitch = clamp(
+            this.pitch - input.mouseDY * fc.lookSensitivity * 0.7,
+            fc.pitchMin,
+            fc.pitchMax,
+          );
           const turn = THREE.MathUtils.degToRad(fc.turnSpeedDeg) * dt;
           if (input.mouseX < innerWidth * fc.edgeTurn) this.yaw += turn;
           else if (input.mouseX > innerWidth * (1 - fc.edgeTurn))
