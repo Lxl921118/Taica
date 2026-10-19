@@ -2,6 +2,8 @@
 
 以 three.js 製作的第一人稱恐怖解謎遊戲，單一 `index.html` 即可執行，單局約 10–15 分鐘。完整規格見 [SDD/SDD.md](SDD/SDD.md)（v1.9）。
 
+網站連結：[逃出研究室](https://lxl921118.github.io/Taica/)
+
 ## 執行
 
 ```bash
